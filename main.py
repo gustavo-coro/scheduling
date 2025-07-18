@@ -1,33 +1,37 @@
-from datetime import date, timedelta
-from src.model.task import Task, Tier, Priority
+from datetime import datetime, timedelta
+from src.model.task import Task, Tier, Priority, Resource
 from src.model.worker import Worker
 from src.scheduler.grasp import GRASPScheduler
 
+import src.input_handler.input_handler as handler
+
 if __name__ == "__main__":
     workers = [
-        Worker("Worker1", Tier.TIER3, ["Europe", "North America"], 5),
-        Worker("Worker2", Tier.TIER2, ["Asia", "Europe"], 12),
-        Worker("Worker3", Tier.TIER1, ["North America"], 5),
-        Worker("Worker4", Tier.TIER3, ["North America", "Asia"], 10),
+        Worker("Worker1", Tier.TIER1, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2"], 1),
+        Worker("Worker2", Tier.TIER2, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-3", "sa-southeast-4"], 2),
+        Worker("Worker3", Tier.TIER3, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2", "sa-southeast-3", "sa-southeast-4"], 3),
+        Worker("Worker4", Tier.TIER1, ["sa-unknown-1", "sa-southeast-1"], 1),
+        Worker("Worker5", Tier.TIER2, ["sa-unknown-1", "sa-southeast-2", "sa-southeast-4"], 3),
+        Worker("Worker6", Tier.TIER4, ["sa-unknown-1", "sa-southeast-3"], 2),
+        Worker("Worker7", Tier.TIER2, ["sa-unknown-1", "sa-southeast-2", "sa-southeast-3"], 2),
+        Worker("Worker8", Tier.TIER3, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2", "sa-southeast-3", "sa-southeast-4"], 3),
+        Worker("Worker9", Tier.TIER2, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-4"], 2),
+        Worker("Worker10", Tier.TIER1, ["sa-unknown-1", "sa-southeast-1"], 1),
+        Worker("Worker11", Tier.TIER1, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2", "sa-southeast-3"], 2),
+        Worker("Worker12", Tier.TIER2, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-3", "sa-southeast-4"], 3),
+        Worker("Worker13", Tier.TIER3, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2", "sa-southeast-3", "sa-southeast-4"], 3),
+        Worker("Worker14", Tier.TIER1, ["sa-unknown-1", "sa-southeast-4"], 1),
+        Worker("Worker15", Tier.TIER2, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2"], 2),
+        Worker("Worker16", Tier.TIER1, ["sa-unknown-1", "sa-southeast-3"], 1),
+        Worker("Worker17", Tier.TIER2, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2", "sa-southeast-3"], 2),
+        Worker("Worker18", Tier.TIER3, ["sa-unknown-1", "sa-southeast-1", "sa-southeast-2", "sa-southeast-3", "sa-southeast-4"], 3),
+        Worker("Worker19", Tier.TIER2, ["sa-unknown-1", "sa-southeast-3", "sa-southeast-3"], 2),
+        Worker("Worker20", Tier.TIER1, ["sa-unknown-1", "sa-southeast-1"], 1),
     ]
 
-    tasks = [
-        Task("Task1", Priority.HIGH, date.today() + timedelta(days=15), "Europe", 10.0, 4, Tier.TIER3),
-        Task("Task2", Priority.MEDIUM, date.today() + timedelta(days=18), "Asia", 8.0, 2, Tier.TIER2),
-        Task("Task3", Priority.LOW, date.today() + timedelta(days=15), "North America", 5.0, 1, Tier.TIER1),
-        Task("Task4", Priority.LOW, date.today() + timedelta(days=15), "North America", 4.0, 1, Tier.TIER1),
-        Task("Task5", Priority.LOW, date.today() + timedelta(days=24), "Asia", 4.0, 1, Tier.TIER2),
-        Task("Task6", Priority.LOW, date.today() + timedelta(days=19), "Asia", 5.0, 1, Tier.TIER1),
-        Task("Task7", Priority.HIGH, date.today() + timedelta(days=16), "North America", 10.0, 4, Tier.TIER3),
-        Task("Task8", Priority.MEDIUM, date.today() + timedelta(days=18), "Asia", 6.0, 2, Tier.TIER2),
-        Task("Task9", Priority.MEDIUM, date.today() + timedelta(days=19), "Asia", 8.0, 2, Tier.TIER3),
-        Task("Task10", Priority.LOW, date.today() + timedelta(days=18), "Europe", 5.0, 1, Tier.TIER1),
-        Task("Task11", Priority.MEDIUM, date.today() + timedelta(days=15), "Asia", 6.0, 2, Tier.TIER2),
-        Task("Task12", Priority.LOW, date.today() + timedelta(days=16), "Europe", 4.0, 1, Tier.TIER1),
+    tasks = handler.create_tasks_from_csv("output_by_created_date/data_2025-04-06.csv")
 
-    ]
-
-    scheduler = GRASPScheduler(workers, alpha=0.3, max_iterations=50)
+    scheduler = GRASPScheduler(workers, alpha=0.2, max_iterations=100)
     best_solution = scheduler.schedule(tasks)
 
     for worker, assigned_tasks in best_solution.items():

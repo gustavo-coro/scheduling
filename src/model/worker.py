@@ -9,7 +9,6 @@ class Worker:
         self.capacity = capacity
         self.task_queue = []
         self.current_task = None
-        self.available_capacity = capacity
         self.current_load = 0.0
 
     def can_accept(self, task: Task) -> bool:
@@ -17,7 +16,7 @@ class Worker:
             return False
         if task.tier.value > self.tier.value:
             return False
-        if self.available_capacity < task.resource_requirements:
+        if self.capacity < task.resource_requirements.value:
             return False
         return True
     
@@ -26,7 +25,6 @@ class Worker:
             raise ValueError("Worker cannot accept this task")
         
         self.task_queue.append(task)
-        self.available_capacity -= task.resource_requirements
         self.current_load += task.estimated_duration
         self.task_queue.sort(key=lambda x: (-x.priority.value, x.due_date))
 
@@ -41,7 +39,6 @@ class Worker:
     def complete_current_task(self):
         if self.current_task:
             self.current_task.completed = True
-            self.available_capacity += self.current_task.resource_requirements
             self.current_task = None
     
     def get_estimated_completion_time(self) -> float:

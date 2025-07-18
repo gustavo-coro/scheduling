@@ -30,7 +30,6 @@ class GRASPScheduler:
         for worker in self.workers:
             worker.task_queue = []
             worker.current_task = None
-            worker.available_capacity = worker.capacity
             worker.current_load = 0.0
 
         tasks.sort(key=lambda x: (-x.priority.value, x.due_date))
@@ -109,7 +108,7 @@ class GRASPScheduler:
             completion_time = current_time
             for task in worker.task_queue:
                 completion_time += task.estimated_duration
-                if completion_time > (task.due_date - datetime.now().date()).days:
+                if completion_time > (task.due_date - datetime.now()).total_seconds() / 60:
                     due_date_penalty += 100
 
         score = -makespan + priority_score - due_date_penalty
@@ -135,8 +134,8 @@ class GRASPScheduler:
 
             task = next_worker.task_queue.pop(0)
             worker_timelines[next_worker.name] = next_time
-            due_in_days = (task.due_date - datetime.now().date()).days
-            if next_time > due_in_days:
-                violations[task.name] = next_time - due_in_days
+            due_in_minutes = (task.due_date - datetime.now()).total_seconds() / 60
+            if next_time > due_in_minutes:
+                violations[task.name] = next_time - due_in_minutes
         
         return violations

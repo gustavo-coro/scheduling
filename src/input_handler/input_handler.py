@@ -1,11 +1,11 @@
 import csv
 from datetime import datetime
-from src.model.task import Task, Priority, Tier
+from src.model.task import Task, Priority, Tier, Resource
 
 
-def parse_due_date(date_str: str):
+def parse_date(date_str: str):
     try:
-        return datetime.strptime(date_str.strip(), "%Y-%m-%d").date()
+        return datetime.strptime(date_str.strip(), "%Y-%m-%d %H:%M:%S")
     except ValueError:
         print(f"Warning: Invalid date format '{date_str}'. Using None.")
         return None
@@ -18,35 +18,43 @@ def create_tasks_from_csv(file_path: str) -> list[Task]:
             reader = csv.reader(csvfile)
             
             for row_num, row in enumerate(reader, 1):
-                if len(row) < 6:
+                if len(row) < 8:
                     print(f"Warning: Row {row_num} has insufficient columns. Skipping.")
                     continue
                 
                 try:
-                    priority_str = row[0].strip().upper()
-                    due_date = parse_due_date(row[1])
+                    # DUE_TO,CREATED_DATE,REGION,TIER,PRIORITY,ESTIMATED_DURATION,MAXIMUM_WAITING_TIME,RESOURCE_REQUIREMENT
+                    due_date = parse_date(row[0])
+                    creted_date = parse_date(row[1])
                     region = row[2].strip()
-                    duration = float(row[3].strip())
-                    resources = [r.strip() for r in row[4].split(';') if r.strip()]
-                    tier_str = row[5].strip().upper()
-                    task = Task(f"Task-{row_num}", f"Imported from CSV row {row_num}")
+                    tier = int(row[3].strip())
+                    priority = row[4].strip().upper()
+                    duration = float(row[5].strip())
+                    max_wait = float(row[6].strip())
+                    resource = row[7].strip().upper()
+
+                    if duration < 0:
+                        duration = 5.0
+
+
+                    task = Task(f"{row_num}", Priority.MEDIUM, due_date, region, duration, Resource.MEDIUM, Tier.TIER2, creted_date)
+                    
                     try:
-                        task.set_priority(Priority[priority_str])
+                        task.set_priority(Priority[priority])
                     except KeyError:
-                        print(f"Warning: Invalid priority '{priority_str}' in row {row_num}. Using MEDIUM.")
+                        print(f"Warning: Invalid priority '{priority}' in row {row_num}. Using MEDIUM.")
                         task.set_priority(Priority.MEDIUM)
-                    
-                    task.set_due_date(due_date)
-                    task.set_region(region)
-                    task.set_estimated_duration(duration)
-                    
-                    for resource in resources:
-                        task.add_resource_requirement(resource)
+
+                    try:
+                        task.add_resource_requirement(Resource[resource])
+                    except KeyError:
+                        print(f"Warning: Invalid resource '{resource}' in row {row_num}. Using MEDIUM.")
+                        task.set_priority(Resource.MEDIUM)
                     
                     try:
-                        task.set_tier(Tier[tier_str])
+                        task.set_tier(Tier(tier))
                     except KeyError:
-                        print(f"Warning: Invalid tier '{tier_str}' in row {row_num}. Using TIER2.")
+                        print(f"Warning: Invalid tier '{tier}' in row {row_num}. Using TIER2.")
                         task.set_tier(Tier.TIER2)
                     
                     tasks.append(task)
